@@ -13,16 +13,17 @@
       else targetSystem;
   in
     inputs.nixpkgs.legacyPackages.${system};
-    # Note: The systemd patch for Ledger detection was removed during nixos-25.11 upgrade
-    # TODO: Verify Ledger hardware wallet detection still works without the patch
-    # If not, the patch needs to be updated for systemd 258.3
+  # Note: The systemd patch for Ledger detection was removed during nixos-25.11 upgrade
+  # TODO: Verify Ledger hardware wallet detection still works without the patch
+  # If not, the patch needs to be updated for systemd 258.3
 
   pkgsJs = let
     system =
       if targetSystem == "x86_64-windows"
       then "x86_64-linux"
       else targetSystem;
-  in inputs.nixpkgsJs.legacyPackages.${system};
+  in
+    inputs.nixpkgsJs.legacyPackages.${system};
 
   flake-compat = import inputs.flake-compat;
 
@@ -113,7 +114,7 @@
     import ./launcher-config.nix {
       inherit devShell;
       inherit cardanoLib;
-      inherit (pkgs) runCommand lib;
+      inherit (pkgs) runCommand lib jq;
       system = pkgs.stdenv.hostPlatform.system;
       inherit (inputs) cardano-playground;
       network = cluster;
@@ -210,21 +211,26 @@
       relPath = pkgs.lib.removePrefix (toString inputs.self + "/") (toString name);
     in
       # Exclude nix files
-      !(type == "regular" && (
-        pkgs.lib.hasInfix "-source/nix/" name
-        || pkgs.lib.hasSuffix ".nix" name
-        || pkgs.lib.hasSuffix ".hs" name
-        || pkgs.lib.hasSuffix ".cabal" name
-      ))
+      !(type
+        == "regular"
+        && (
+          pkgs.lib.hasInfix "-source/nix/" name
+          || pkgs.lib.hasSuffix ".nix" name
+          || pkgs.lib.hasSuffix ".hs" name
+          || pkgs.lib.hasSuffix ".cabal" name
+        ))
       # Exclude directories that shouldn't trigger rebuilds
-      && !(type == "directory" && (
-        baseName == ".direnv"
-        || baseName == ".agent"
-        || baseName == "node_modules"
-        || baseName == "dist"
-        || baseName == "release"
-        || baseName == ".git"
-      ))
+      && !(type
+        == "directory"
+        && (
+          baseName
+          == ".direnv"
+          || baseName == ".agent"
+          || baseName == "node_modules"
+          || baseName == "dist"
+          || baseName == "release"
+          || baseName == ".git"
+        ))
       # Exclude specific files
       && !(baseName == ".envrc")
       # Exclude markdown docs but keep terms-of-use .md files (runtime assets loaded by webpack)
