@@ -97,6 +97,7 @@ When an issue is resolved or a complex integration succeeds:
 
 | Skill                                                                  | Description                             |
 |------------------------------------------------------------------------|-----------------------------------------|
+| [`agentic-kb`](./skills/agentic-kb/SKILL.md)                           | Search KB for docs, code, issues, PRs  |
 | [`e2e-test-creation`](./skills/e2e-test-creation/SKILL.md)            | Create Cucumber BDD e2e tests           |
 | [`git-commit-formatter`](./skills/git-commit-formatter/SKILL.md)      | Conventional commit formatting          |
 
