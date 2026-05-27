@@ -1,0 +1,122 @@
+// NOTE: Stub demo colors. Production must use Daedalus theme tokens from source/renderer/app/themes/. WCAG AA verification deferred to production-component pass.
+
+.component,
+.highlighted {
+  background: var(--theme-bordered-box-background-color);
+  border: 1px solid rgba(61, 78, 117, 0.16);
+  border-radius: 6px;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: auto minmax(260px, 1fr) minmax(180px, auto) auto;
+  padding: 16px;
+  position: relative;
+}
+
+.highlighted {
+  border-color: rgba(49, 84, 163, 0.55);
+  box-shadow: 0 0 0 2px rgba(49, 84, 163, 0.08);
+}
+
+.favoriteButton {
+  align-self: start;
+  background: transparent;
+  border: 1px solid rgba(61, 78, 117, 0.2);
+  border-radius: 50%;
+  color: #3154a3;
+  cursor: pointer;
+  font-size: 18px;
+  height: 34px;
+  line-height: 1;
+  width: 34px;
+}
+
+.identity {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.nameRow {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.metrics {
+  align-content: start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.metricLabel {
+  color: #667085;
+  flex-basis: 100%;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.metricValue {
+  color: #1f2937;
+  flex-basis: 100%;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.actions {
+  align-items: flex-end;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  justify-content: center;
+}
+
+.primaryButton,
+.secondaryButton {
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  min-height: 34px;
+  padding: 8px 12px;
+  white-space: nowrap;
+}
+
+.primaryButton {
+  background: #3154a3;
+  border: 1px solid #3154a3;
+  color: #ffffff;
+}
+
+.secondaryButton {
+  background: var(--theme-bordered-box-background-color);
+  border: 1px solid rgba(61, 78, 117, 0.22);
+  color: #3154a3;
+}
+
+.srOnly {
+  clip: rect(0, 0, 0, 0);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  width: 1px;
+}
+
+@media (max-width: 1120px) {
+  .component,
+  .highlighted {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .metrics,
+  .actions {
+    grid-column: 2;
+  }
+
+  .actions {
+    align-items: flex-start;
+  }
+}

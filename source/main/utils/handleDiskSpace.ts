@@ -122,8 +122,9 @@ export const handleDiskSpace = (
   let mithrilBootstrapCompleted = false;
   let mithrilStartInFlight = false;
   let directoryChangeGeneration = 0;
-  let activeDiskSpaceCheckPromise: Promise<CheckDiskSpaceResponse> | null =
-    null;
+  let activeDiskSpaceCheckPromise: Promise<
+    CheckDiskSpaceResponse
+  > | null = null;
   let pendingDiskSpaceCheckArgs: {
     hadNotEnoughSpaceLeft?: boolean;
     forceDiskSpaceRequired?: number;
@@ -518,8 +519,9 @@ export const handleDiskSpace = (
       diskTotalSpaceRaw: 0,
       isError: false,
     });
-    const startupLayoutResult =
-      await ensureMithrilStartupGate(currentGeneration);
+    const startupLayoutResult = await ensureMithrilStartupGate(
+      currentGeneration
+    );
     if (
       !startupLayoutResult ||
       currentGeneration !== directoryChangeGeneration
@@ -614,8 +616,7 @@ export const handleDiskSpace = (
 
         case CARDANO_NODE_CAN_BE_STARTED_FOR_THE_FIRST_TIME:
           try {
-            const chainEmpty =
-              await chainStorageCoordinator.isManagedChainEmpty();
+            const chainEmpty = await chainStorageCoordinator.isManagedChainEmpty();
             if (currentGeneration !== directoryChangeGeneration) {
               return getStaleResponse();
             }
@@ -886,8 +887,8 @@ export const handleDiskSpace = (
         pendingDiskSpaceCheckArgs.hadNotEnoughSpaceLeft === false ||
         nextArgs.hadNotEnoughSpaceLeft === false
           ? false
-          : (nextArgs.hadNotEnoughSpaceLeft ??
-            pendingDiskSpaceCheckArgs.hadNotEnoughSpaceLeft),
+          : nextArgs.hadNotEnoughSpaceLeft ??
+            pendingDiskSpaceCheckArgs.hadNotEnoughSpaceLeft,
       forceDiskSpaceRequired:
         nextArgs.forceDiskSpaceRequired ??
         pendingDiskSpaceCheckArgs.forceDiskSpaceRequired,

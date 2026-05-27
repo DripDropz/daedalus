@@ -1,0 +1,49 @@
+// NOTE: Stub demo colors. Production must use Daedalus theme tokens from source/renderer/app/themes/. WCAG AA verification deferred to production-component pass.
+
+.component {
+  align-items: center;
+  color: #667085;
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 12px;
+  gap: 10px;
+}
+
+.timestamp {
+  white-space: nowrap;
+}
+
+.spinner {
+  animation: spin 0.9s linear infinite;
+  border: 2px solid rgba(49, 84, 163, 0.2);
+  border-radius: 50%;
+  border-top-color: #3154a3;
+  height: 14px;
+  width: 14px;
+}
+
+.refreshButton {
+  background: transparent;
+  border: 1px solid rgba(61, 78, 117, 0.22);
+  border-radius: 4px;
+  color: #3154a3;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 10px;
+}
+
+.liveRegion {
+  height: 1px;
+  left: -10000px;
+  overflow: hidden;
+  position: absolute;
+  top: auto;
+  width: 1px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

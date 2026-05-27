@@ -1,0 +1,44 @@
+// NOTE: Stub demo colors. Production must use Daedalus theme tokens from source/renderer/app/themes/. WCAG AA verification deferred to production-component pass.
+
+.component {
+  align-items: center;
+  border-radius: 4px;
+  display: inline-flex;
+  font-size: 11px;
+  font-weight: 600;
+  gap: 6px;
+  line-height: 1;
+  padding: 6px 8px;
+  white-space: nowrap;
+}
+
+.icon {
+  font-size: 10px;
+  line-height: 1;
+}
+
+.active {
+  background: rgba(46, 164, 79, 0.14);
+  color: #216e39;
+}
+
+.inactive {
+  background: rgba(88, 96, 105, 0.12);
+  color: #4b5563;
+}
+
+.expiring {
+  background: rgba(188, 124, 0, 0.16);
+  color: #8a5a00;
+}
+
+.retired,
+.selfnodeUnavailable {
+  background: rgba(100, 116, 139, 0.14);
+  color: #475569;
+}
+
+.top35Excluded {
+  background: rgba(37, 99, 235, 0.12);
+  color: #1d4ed8;
+}

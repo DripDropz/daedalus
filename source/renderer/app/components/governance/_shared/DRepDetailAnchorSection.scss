@@ -1,0 +1,71 @@
+// NOTE: Stub demo colors. Production must use Daedalus theme tokens from source/renderer/app/themes/. WCAG AA verification deferred to production-component pass.
+
+.component {
+  background: var(--theme-bordered-box-background-color);
+  border: 1px solid rgba(61, 78, 117, 0.16);
+  border-radius: 6px;
+  padding: 18px;
+}
+
+.header,
+.verifiedHeader {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.header h3 {
+  font-size: 16px;
+  margin: 0;
+}
+
+.definitionList,
+.verifiedPreview dl {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+}
+
+.definitionList div,
+.verifiedPreview dl div {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 132px minmax(0, 1fr);
+}
+
+.definitionList dt,
+.verifiedPreview dt {
+  color: #667085;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.definitionList dd,
+.verifiedPreview dd {
+  color: #1f2937;
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.unavailable {
+  color: #667085;
+  margin: 0;
+}
+
+.verifiedPreview {
+  background: rgba(22, 163, 74, 0.07);
+  border: 1px solid rgba(22, 163, 74, 0.18);
+  border-radius: 6px;
+  margin-top: 16px;
+  padding: 14px;
+}
+
+.verifiedPreview p {
+  color: #344054;
+  line-height: 1.45;
+  margin: 0 0 12px;
+}

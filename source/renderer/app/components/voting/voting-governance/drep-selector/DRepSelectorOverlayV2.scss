@@ -1,0 +1,173 @@
+// NOTE: Stub demo colors. Production must use Daedalus theme tokens from source/renderer/app/themes/. WCAG AA verification deferred to production-component pass.
+
+.backdrop {
+  background: rgba(16, 24, 40, 0.42);
+  bottom: 0;
+  display: flex;
+  left: 0;
+  padding: 34px;
+  position: fixed;
+  right: 0;
+  top: 0;
+  z-index: 200;
+}
+
+.component {
+  background: var(--theme-main-body-background-color);
+  border-radius: 6px;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.28);
+  color: #1f2937;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 0;
+  padding: 22px;
+}
+
+.header {
+  align-items: flex-start;
+  display: flex;
+  gap: 18px;
+  justify-content: space-between;
+}
+
+.header h2 {
+  font-size: 24px;
+  margin: 0;
+}
+
+.header p {
+  color: #667085;
+  margin: 4px 0 0;
+}
+
+.closeButton,
+.cancelButton,
+.selectButton,
+.controls button {
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px 12px;
+}
+
+.closeButton,
+.cancelButton,
+.controls button {
+  background: var(--theme-bordered-box-background-color);
+  border: 1px solid rgba(61, 78, 117, 0.22);
+  color: #3154a3;
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.tab,
+.activeTab {
+  border: 1px solid rgba(61, 78, 117, 0.18);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 8px 12px;
+}
+
+.tab {
+  background: var(--theme-bordered-box-background-color);
+  color: #3154a3;
+}
+
+.activeTab,
+.selectButton {
+  background: #3154a3;
+  border: 1px solid #3154a3;
+  color: #ffffff;
+}
+
+.selectButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.metaRow {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.controls {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(280px, 1fr) auto;
+}
+
+.controls input {
+  border: 1px solid rgba(61, 78, 117, 0.22);
+  border-radius: 4px;
+  color: #1f2937;
+  font-size: 14px;
+  min-height: 38px;
+  padding: 8px 10px;
+}
+
+.content,
+.splitContent {
+  display: grid;
+  flex: 1;
+  min-height: 0;
+}
+
+.content {
+  grid-template-columns: 1fr;
+}
+
+.splitContent {
+  grid-template-columns: minmax(0, 3fr) minmax(320px, 2fr);
+}
+
+.listPane {
+  min-height: 0;
+  overflow: auto;
+  padding-right: 8px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.loading {
+  align-items: center;
+  background: var(--theme-bordered-box-background-color);
+  border: 1px solid rgba(61, 78, 117, 0.16);
+  border-radius: 6px;
+  color: #667085;
+  display: flex;
+  min-height: 260px;
+  padding: 24px;
+}
+
+.footer {
+  align-items: center;
+  border-top: 1px solid rgba(61, 78, 117, 0.12);
+  color: #667085;
+  display: flex;
+  font-size: 12px;
+  justify-content: space-between;
+  padding-top: 12px;
+}
+
+.footerActions {
+  display: flex;
+  gap: 8px;
+}
+
+@media (max-width: 1120px) {
+  .splitContent {
+    grid-template-columns: 1fr;
+  }
+}

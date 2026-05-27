@@ -32,7 +32,14 @@ module.exports = {
       syncWebAssembly: true,
     };
     config.resolve = {
+      ...(config.resolve || {}),
       extensions: ['.ts', '.tsx', '.js', '.json'],
+      alias: {
+        ...((config.resolve && config.resolve.alias) || {}),
+        // node-gyp-build is used by usb to load native .node bindings.
+        // Storybook runs in a browser and only renders mocked hardware-wallet UI.
+        'node-gyp-build': require.resolve('./stubs/node-gyp-build.js'),
+      },
       fallback: {
         process: require.resolve('process/browser'),
         path: require.resolve('path-browserify'),

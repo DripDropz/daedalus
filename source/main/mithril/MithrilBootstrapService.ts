@@ -703,10 +703,8 @@ export class MithrilBootstrapService {
           verifyingUpdate.filesTotal = this._lastFilesTotal;
         }
         if (this._status.ancillaryBytesTotal != null) {
-          verifyingUpdate.ancillaryBytesDownloaded =
-            this._status.ancillaryBytesTotal;
-          verifyingUpdate.ancillaryBytesTotal =
-            this._status.ancillaryBytesTotal;
+          verifyingUpdate.ancillaryBytesDownloaded = this._status.ancillaryBytesTotal;
+          verifyingUpdate.ancillaryBytesTotal = this._status.ancillaryBytesTotal;
         }
         this._updateStatus(verifyingUpdate);
         return;
@@ -855,7 +853,9 @@ export class MithrilBootstrapService {
     await fs.remove(outputLsmDatabase);
 
     logger.info(
-      `[mithril] Doing LSM conversion of snapshot with command: snapshot-converter ${converterArgs.join(' ')}`,
+      `[mithril] Doing LSM conversion of snapshot with command: snapshot-converter ${converterArgs.join(
+        ' '
+      )}`,
       { slot, dbDirectory }
     );
 

@@ -125,8 +125,13 @@ export async function detectLayout(
     entryPointState.type === 'directory'
       ? ctx._chainPath
       : entryPointState.resolvedPath || null;
-  const { managedEntries, ignoredEntries } =
-    await ctx._listLegacyManagedEntries(normalizedCustomPath, managedChainPath);
+  const {
+    managedEntries,
+    ignoredEntries,
+  } = await ctx._listLegacyManagedEntries(
+    normalizedCustomPath,
+    managedChainPath
+  );
 
   if (currentChainSource) {
     if (ctx._isSamePath(currentChainSource, managedChainPath)) {
@@ -530,8 +535,9 @@ export async function installSnapshot(
   });
 
   const managedChainPath = await ctx.getManagedChainPath();
-  const resolvedManagedChainPath =
-    await ctx._resolveRealPathOrInput(managedChainPath);
+  const resolvedManagedChainPath = await ctx._resolveRealPathOrInput(
+    managedChainPath
+  );
   const resolvedDbDirectory = path.resolve(dbDirectory);
 
   if (ctx._isSamePath(resolvedDbDirectory, resolvedManagedChainPath)) {

@@ -2,11 +2,11 @@
   "metadata": {
     "title": "Governance DRep Discovery Plan Tasks",
     "created": "2026-05-21",
-    "updated": "2026-05-21",
-    "version": "1.0.0",
-    "totalTasks": 23,
+    "updated": "2026-05-22",
+    "version": "1.3.1",
+    "totalTasks": 52,
     "prdReference": ".agent/plans/governance/governance-drep-discovery-plan.md",
-    "description": "Standalone DRep Discovery implementation plan for browse, evaluate, favorite, select, and delegate in Daedalus. Query-path discovery gate findings are captured in the markdown plan."
+    "description": "Standalone DRep Discovery implementation plan for browse, evaluate, favorite, select, and delegate in Daedalus. Query-path discovery gate findings are captured in the markdown plan. Sprint 5 adds the renderer-only Wallet Current Vote Display feature (task-031..task-052). v1.3 corrects Sprint 5 framing to CIP-1694 liquid-democracy semantics, adds the noDelegation reward-withdrawal warning + nudge, and introduces CIP-119 anchor links + givenName display. v1.3.1 narrows the current-vote box to current delegation only (no history), removes the CIP-1694 caveat, external directory link, and anchor digest display, and updates V1/V3 layouts to center the pane."
   },
   "phases": [
     {
@@ -111,6 +111,39 @@
             "If directory-wide DRep endpoints appear, re-open the query-path decision before continuing.",
             "Review upstream cardano-wallet commits, release notes, and security advisories between previous rev and new rev.",
             "Prefer tagged cardano-wallet releases unless a branch pin is explicitly approved."
+          ]
+        },
+        {
+          "id": "task-025",
+          "title": "Define refresh latency budget and stale-while-refresh visual contract",
+          "description": "GovernanceQueryService and the renderer agree on a shared refresh-latency budget: ≤700ms full-skeleton, ≤10s stale-with-spinner, >10s timeout banner. Expose elapsed time and refresh state through the governance IPC payloads so the renderer can render the contract from shared-design-tokens §6.",
+          "status": "pending",
+          "priority": "medium",
+          "estimatedHours": 4,
+          "dependencies": [
+            "task-003"
+          ],
+          "targetPath": "source/main/",
+          "acceptanceCriteria": [
+            "Timing budget documented in the IPC contract and the shared design tokens reference.",
+            "Renderer banner copy matches shared-design-tokens §6.",
+            "Tests verify state transitions: fresh-load, stale-with-spinner, and timeout banner."
+          ]
+        },
+        {
+          "id": "task-026",
+          "title": "Selfnode CLI-unsupported empty-state copy and IPC payload",
+          "description": "When the query service returns `SelfnodeCliUnsupported`, the renderer surfaces the shared-tokens §1 selfnode unavailable badge plus the directory empty-state copy from shared-tokens §9 (`governance.drepDirectory.empty.selfnode`). No partial directory is ever rendered for selfnode.",
+          "status": "pending",
+          "priority": "low",
+          "estimatedHours": 2,
+          "dependencies": [
+            "task-003"
+          ],
+          "targetPath": "source/renderer/app/components/",
+          "acceptanceCriteria": [
+            "Selfnode cluster shows a graceful empty state, never a partial directory.",
+            "Covered by a Storybook story and at least one Jest test."
           ]
         }
       ]
@@ -220,6 +253,40 @@
             "task-009"
           ],
           "targetPath": "source/renderer/app/"
+        },
+        {
+          "id": "task-027",
+          "title": "V3 prerequisite: prefix-match sidebar active-item in containers/voting/Voting.tsx (if V3 is selected)",
+          "description": "Only required if stakeholders choose V3 (split-pane explorer). Update the sidebar active matcher in containers/voting/Voting.tsx from exact route equality to descendant matching for `/voting/governance/...` so deep DRep detail routes keep the Voting sidebar item active. Skip this task if V1 or V2 is the chosen variant.",
+          "status": "pending",
+          "priority": "high",
+          "estimatedHours": 3,
+          "dependencies": [
+            "task-010",
+            "task-013"
+          ],
+          "targetPath": "source/renderer/app/containers/voting/",
+          "acceptanceCriteria": [
+            "Any path starting with `/voting/governance` activates the Voting sidebar item.",
+            "Unit test asserts `/voting/governance/dreps/<id>` activates Voting.",
+            "Skip this task if V1 or V2 is the chosen variant."
+          ]
+        },
+        {
+          "id": "task-028",
+          "title": "Implement DRep ID search semantics from shared-tokens §11",
+          "description": "Implement search-input semantics for DRep IDs per shared-design-tokens §11: minimum 8-character prefix before the directory filters, prefix matches never auto-select a row, an exact bech32 match opens the DRep detail view directly, both CIP-105 and CIP-129 encodings are searched and results deduped by credential, and bech32 validation runs in the renderer before IPC.",
+          "status": "pending",
+          "priority": "medium",
+          "estimatedHours": 5,
+          "dependencies": [
+            "task-008"
+          ],
+          "targetPath": "source/renderer/app/components/",
+          "acceptanceCriteria": [
+            "Jest tests cover each rule: 8-char minimum, no auto-select on prefix, exact-match detail open, dual-encoding search, dedupe by credential, pre-IPC bech32 validation.",
+            "Cucumber covers the prefix-match list path and the exact-match detail-open path."
+          ]
         }
       ]
     },
@@ -403,13 +470,512 @@
             "Cucumber scenario coverage includes hardware-wallet browse -> select -> confirm-on-device -> delegate path with mocked Ledger and Trezor transports.",
             "Release verification confirms the DRep Discovery gate: users can complete browse -> evaluate -> select -> delegate without external portals."
           ]
+        },
+        {
+          "id": "task-024",
+          "title": "Honor CIP-119 `doNotList` in default cohort",
+          "description": "When verified anchor metadata is parsed in Sprint 4, DReps whose CIP-119 metadata declares `doNotList: true` are excluded from the default cohort but remain reachable through search/show-all and direct DRep ID entry.",
+          "status": "pending",
+          "priority": "medium",
+          "estimatedHours": 4,
+          "dependencies": [
+            "task-018"
+          ],
+          "targetPath": "source/renderer/app/stores/",
+          "acceptanceCriteria": [
+            "Default cohort excludes DReps with `doNotList=true`.",
+            "Show-all and search still surface `doNotList=true` DReps.",
+            "Direct DRep ID entry resolves `doNotList=true` DReps to their detail view.",
+            "E2e covers both the excluded default-cohort path and the search/direct-entry reachability path."
+          ]
+        },
+        {
+          "id": "task-029",
+          "title": "Migrate confirmation dialog identity to verified name (preserve byte-equality)",
+          "description": "When verified anchor metadata is available, the delegation confirmation dialog adds the verified `givenName` alongside the DRep ID while preserving byte-equality of CIP-129 + CIP-105 + signed payload `vote.id`. The hardware-wallet path asserts the on-device DRep ID equals `vote.chosenOption`.",
+          "status": "pending",
+          "priority": "high",
+          "estimatedHours": 4,
+          "dependencies": [
+            "task-018",
+            "task-022"
+          ],
+          "targetPath": "source/renderer/app/components/voting/voting-governance/",
+          "acceptanceCriteria": [
+            "Confirmation renders verified givenName plus DRep ID per shared-design-tokens §7 (identity equality rule).",
+            "CIP-129, CIP-105, and signed payload `vote.id` remain byte-equal across the Sprint 2 → Sprint 4 transition.",
+            "Hardware-wallet test asserts on-device DRep ID equals `vote.chosenOption`."
+          ]
+        },
+        {
+          "id": "task-030",
+          "title": "Define `Abstain` and `No Confidence` treatment in DRep directory surfaces",
+          "description": "Confirm `Abstain` and `No Confidence` remain form-only choices in the delegation form and are not surfaced as DRep directory entries. Document the IA rationale in the directory and ensure the directory's empty-state copy does not conflict with these form-only choices.",
+          "status": "pending",
+          "priority": "low",
+          "estimatedHours": 2,
+          "dependencies": [
+            "task-018"
+          ],
+          "targetPath": "source/renderer/app/components/",
+          "acceptanceCriteria": [
+            "Directory never renders Abstain or No Confidence as DRep entries.",
+            "Confirmation dialog still supports Abstain and No Confidence via the existing form path.",
+            "Directory empty-state copy does not conflict with these form-only choices."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sprint-5",
+      "name": "Sprint 5 — Sanitization gate",
+      "description": "Redact governance vote targets from logs and analytics BEFORE any UI work plumbs them through. Blocking prerequisite for all later phases.",
+      "riskLevel": "high",
+      "tasks": [
+        {
+          "id": "task-031",
+          "title": "Redact governance vote targets in filterLogData",
+          "description": "Use the existing omit-deep-lodash invocation pattern in filterLogData — flat key list, no path-aware visitor. Add keys dRepId, vote, voting (the existing helper recurses by key name at any depth, which already covers delegation.active.voting, delegation.next[*].voting, certificates[*].vote, etc.).",
+          "status": "pending",
+          "priority": "high",
+          "estimatedHours": 4,
+          "dependencies": [],
+          "targetPath": "source/common/utils/logging.ts",
+          "acceptanceCriteria": [
+            "`filterLogData` adds the flat keys `dRepId`, `vote`, `voting` to the omit-deep-lodash key list; existing recursion covers all nested paths.",
+            "No raw DRep id, no 'abstain', no 'no_confidence', no bech32 CIP-129/CIP-105 string appears in any logger payload during a delegation flow.",
+            "Existing log shapes for non-governance flows are unchanged."
+          ]
+        },
+        {
+          "id": "task-032",
+          "title": "Reduce 'Casted governance vote' analytics payload to voteKind only",
+          "description": "Change the 'Casted governance vote' analytics call in source/renderer/app/stores/VotingStore.ts to call the existing positional analytics API sendEvent(category, name, action?, value?) with action = voteKind (one of 'drep' | 'abstain' | 'no_confidence') and NO raw DRep id in either the action or value slot. Add a one-line CHANGELOG note: \"analytics: 'Casted governance vote' event action field now carries the vote kind only (drep/abstain/no_confidence) instead of the raw DRep id — telemetry dashboards keyed on event action must be updated.\"",
+          "status": "pending",
+          "priority": "high",
+          "estimatedHours": 3,
+          "dependencies": [
+            "task-031"
+          ],
+          "targetPath": "source/renderer/app/stores/VotingStore.ts",
+          "acceptanceCriteria": [
+            "`sendEvent` call uses the existing positional signature (category, name, action, value).",
+            "`action` is one of `drep | abstain | no_confidence` — never a raw DRep id.",
+            "`value` slot does NOT carry a DRep id.",
+            "Event `category` and `name` are unchanged.",
+            "CHANGELOG entry calls out the action-field schema change for Matomo dashboard owners."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sprint-6",
+      "name": "Sprint 6 — Renderer data plumbing",
+      "description": "Capture wire fixtures and propagate the confirmed cardano-wallet voting fields through types, mapper, and Wallet domain model. Fixes the latent voting_and_delegating literal bug.",
+      "riskLevel": "medium",
+      "tasks": [
+        {
+          "id": "task-033",
+          "title": "Commit cardano-wallet voting/delegating fixtures",
+          "description": "Capture representative GET /v2/wallets/{id} JSON fixtures from the pinned cardano-wallet v2026-05-11 for: status=voting (with delegation.active.voting=drep1...), status=delegating_and_voting (with both target=pool and voting=drep_vkh1...), status=voting (with voting=abstain), and status=voting (with voting=no_confidence). Used by mapper unit tests in Phase 7.",
+          "status": "pending",
+          "priority": "high",
+          "estimatedHours": 4,
+          "dependencies": [],
+          "targetPath": "tests/mocks/wallets/",
+          "acceptanceCriteria": [
+            "Fixtures cover voting / delegating_and_voting / abstain / no_confidence.",
+            "All fixtures conform to ApiWallet shape from cardano-wallet v2026-05-11 swagger.",
+            "Each fixture is small (only the fields needed for mapper tests) and contains no real wallet ids."
+          ]
+        },
+        {
+          "id": "task-034",
+          "title": "Fix latent delegating_and_voting literal mismatch",
+          "description": "In source/renderer/app/api/wallets/types.ts (DelegationStatus union, line ~80) and source/renderer/app/domains/Wallet.ts (WalletDelegationStatuses.VOTING_AND_DELEGATING, line ~42) change the underlying string from 'voting_and_delegating' to 'delegating_and_voting' to match the actual cardano-wallet wire value. Preserve the constant export name VOTING_AND_DELEGATING. Grep for any code that compares against the old literal and update.",
+          "status": "pending",
+          "priority": "high",
+          "estimatedHours": 3,
+          "dependencies": [
+            "task-033"
+          ],
+          "targetPath": "source/renderer/app/api/wallets/types.ts",
+          "acceptanceCriteria": [
+            "DelegationStatus union contains 'delegating_and_voting', not 'voting_and_delegating'.",
+            "WalletDelegationStatuses.VOTING_AND_DELEGATING === 'delegating_and_voting' (constant name preserved).",
+            "Unit test asserts the constant equals the wire literal.",
+            "No remaining 'voting_and_delegating' string literal in the renderer codebase (except possibly in changelog/migration notes)."
+          ]
+        },
+        {
+          "id": "task-035",
+          "title": "Widen WalletDelegation and WalletNextDelegation with voting field",
+          "description": "Add voting?: WalletVotingTarget (discriminated union with 'kind' tag) to WalletDelegation and WalletNextDelegation in source/renderer/app/api/wallets/types.ts. The DRep variant carries a DRepIdentity { raw, cip129?, cip105?, credentialHex?, credentialType: 'key' | 'script' }.",
+          "status": "pending",
+          "priority": "high",
+          "estimatedHours": 3,
+          "dependencies": [
+            "task-034"
+          ],
+          "targetPath": "source/renderer/app/api/wallets/types.ts",
+          "acceptanceCriteria": [
+            "WalletDelegation and WalletNextDelegation expose voting?: WalletVotingTarget.",
+            "WalletVotingTarget discriminator is 'kind' with values 'drep' | 'abstain' | 'no_confidence'.",
+            "DRepIdentity contains raw (required) plus optional cip129/cip105/credentialHex.",
+            "DRepIdentity carries `credentialType` to prevent key/script collision in the same-vote comparator."
+          ]
+        },
+        {
+          "id": "task-036",
+          "title": "Implement normalizeDRepIdentity helper",
+          "description": "Add a pure function source/renderer/app/utils/governance/normalizeDRepIdentity.ts that decodes the raw on-wire bech32 string via the existing bech32 helper (preserving HRP), classifies it as drep (CIP-129) / drep_vkh (CIP-105 key) / drep_script (CIP-105 script) / abstain / no_confidence, and fills the missing canonical form(s) so that downstream display + same-vote comparison are HRP-aware and credential-type-aware. Used by both the mapper and the same-vote comparator.",
+          "status": "pending",
+          "priority": "high",
+          "estimatedHours": 6,
+          "dependencies": [
+            "task-035"
+          ],
+          "targetPath": "source/renderer/app/utils/governance/normalizeDRepIdentity.ts",
+          "acceptanceCriteria": [
+            "Pure function with no side effects.",
+            "Round-trips drep1 → cip105 → drep1 losslessly.",
+            "Rejects invalid bech32 input by returning null or throwing a typed error consistent with the rest of the renderer.",
+            "Unit tests cover all three prefixes plus invalid input.",
+            "Uses `bech32.decode` (or equivalent) that preserves the HRP — must distinguish `drep`, `drep_vkh`, `drep_script` even when the 28-byte payload is identical.",
+            "Returns `DRepIdentity` carrying `credentialType: 'key' | 'script'` so the same-vote comparator does not falsely equate a key DRep and a script DRep with the same hash.",
+            "Reuses an existing bech32 helper from the renderer bundle (e.g. `@cardano-sdk/core` or the existing `bech32` dependency) — no new direct dependency added to package.json."
+          ]
+        },
+        {
+          "id": "task-037",
+          "title": "Extract current vote in _createWalletFromServerData with explicit collision rules",
+          "description": "Update source/renderer/app/api/api.ts _createWalletFromServerData to apply these mapping rules: (1) status === 'voting': delegatedStakePoolId = null; votingTarget = parsed(active.voting). (2) status === 'delegating_and_voting': delegatedStakePoolId = active.target (pool); votingTarget = parsed(active.voting). (3) status === 'delegating' / 'not_delegating': votingTarget = null; existing pool mapping unchanged. Per CIP-1694, delegation.active.voting remains the authoritative current on-chain delegation. Pass new props (votingTarget) into the Wallet constructor.",
+          "status": "pending",
+          "priority": "high",
+          "estimatedHours": 6,
+          "dependencies": [
+            "task-035",
+            "task-036"
+          ],
+          "targetPath": "source/renderer/app/api/api.ts",
+          "acceptanceCriteria": [
+            "For status === 'voting' fixture, delegatedStakePoolId === null and votingTarget is populated.",
+            "For status === 'delegating_and_voting' fixture, both delegatedStakePoolId and votingTarget are populated.",
+            "Existing delegating / not_delegating mappings are byte-identical to today's behaviour.",
+            "When status === 'voting' and active.voting is absent, votingTarget is null — never parses active.target (which is a pool id)."
+          ]
+        },
+        {
+          "id": "task-038",
+          "title": "Extend Wallet domain model with currentVote / isVoting",
+          "description": "Add @observable votingTarget; @computed get currentVote(): WalletVotingTarget | null; @computed get isVoting(): boolean. Extend the constructor pick list. Do NOT expose historical vote-target fields in v1. Must also extend the Wallet.update() pick list — not only the constructor — otherwise polling refresh silently drops votingTarget.",
+          "status": "pending",
+          "priority": "high",
+          "estimatedHours": 4,
+          "dependencies": [
+            "task-037"
+          ],
+          "targetPath": "source/renderer/app/domains/Wallet.ts",
+          "acceptanceCriteria": [
+            "Wallet.currentVote returns the parsed WalletVotingTarget or null.",
+            "isVoting === true iff currentVote !== null.",
+            "Unit tests cover all four delegation statuses plus pending.",
+            "Wallet.update() pick list explicitly includes `votingTarget` (and the new computeds' dependencies) so polled wallet refreshes propagate the new vote target — preventing the well-known \"stuck stale value\" Daedalus pitfall."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sprint-7",
+      "name": "Sprint 7 — Shared presentational component",
+      "description": "Build the CurrentVoteSummary component that renders noDelegation and current-delegation states.",
+      "riskLevel": "low",
+      "tasks": [
+        {
+          "id": "task-039",
+          "title": "Implement CurrentVoteSummary component",
+          "description": "New component CurrentVoteSummary accepting { currentVote }. Renders noDelegation warning + CTA plus single current-delegation states. Reuses DRepIdDisplay, DRepSourceLabel, DRepStatusBadge from source/renderer/app/components/governance/_shared/.",
+          "status": "pending",
+          "priority": "high",
+          "estimatedHours": 6,
+          "dependencies": [
+            "task-038"
+          ],
+          "targetPath": "source/renderer/app/components/voting/voting-governance/CurrentVoteSummary.tsx",
+          "acceptanceCriteria": [
+            "Renders status badge + DRep id (via DRepIdDisplay) + source label (via DRepSourceLabel).",
+            "When the wallet has no governance delegation, renders the reward-withdrawal warning and CTA instead of hiding the panel.",
+            "DRep state renders CIP-119 body.givenName, DRep id, in-app view-details link, and external anchor URL link.",
+            "Handles abstain and no_confidence kinds with no DRep id rendered.",
+            "If DRepStatusBadge and DRepSourceLabel cannot localize the new abstain / noConfidence / delegatedToDRep labels with their existing prop contracts, wrap them in a CurrentVoteSummary-local renderer that consumes react-intl directly. Do NOT silently fall back to English literals."
+          ]
+        },
+        {
+          "id": "task-040",
+          "title": "Add CurrentVoteSummary Storybook entry",
+          "description": "Storybook story covering all five knob option ids: noDelegation | drepVerified | drepUnverified | abstain | noConfidence.",
+          "status": "pending",
+          "priority": "medium",
+          "estimatedHours": 3,
+          "dependencies": [
+            "task-039"
+          ],
+          "targetPath": "storybook/stories/governance/CurrentVoteSummary.stories.tsx",
+          "acceptanceCriteria": [
+            "Six knob values render without console errors.",
+            "Story renders in both en-US and ja-JP locales without overflow."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sprint-8",
+      "name": "Sprint 8 — Production flow integration",
+      "description": "Wire CurrentVoteSummary into VotingPowerDelegation and add Previous→New rows to the confirmation dialog.",
+      "riskLevel": "medium",
+      "tasks": [
+        {
+          "id": "task-041",
+          "title": "Pre-fill VotingPowerDelegation from current on-chain delegation",
+          "description": "Update source/renderer/app/components/voting/voting-governance/VotingPowerDelegation.tsx so that when the selected wallet has a non-null currentVote, selectedVoteType and drepInputState.value are seeded from currentVote instead of initialState. Wallet-change reset must respect the same fallback, and noDelegation keeps today's blank form state.",
+          "status": "pending",
+          "priority": "high",
+          "estimatedHours": 5,
+          "dependencies": [
+            "task-039"
+          ],
+          "targetPath": "source/renderer/app/components/voting/voting-governance/VotingPowerDelegation.tsx",
+          "acceptanceCriteria": [
+            "Selecting a wallet with currentVote pre-fills the form.",
+            "Selecting a wallet with no vote behaves identically to today (form starts blank).",
+            "Pre-fill is reactive: when a polling refresh changes `Wallet.currentVote`, the form re-seeds (or surfaces a \"data changed\" indicator). Achieved by deriving the selected wallet from `selectedWalletId` against the latest wallets snapshot, OR by adding a MobX reaction. Does NOT cache the selected wallet object across re-renders."
+          ]
+        },
+        {
+          "id": "task-042",
+          "title": "Render CurrentVoteSummary in VotingPowerDelegation",
+          "description": "Render <CurrentVoteSummary currentVote={...} /> above the form area in VotingPowerDelegation.",
+          "status": "pending",
+          "priority": "high",
+          "estimatedHours": 2,
+          "dependencies": [
+            "task-041"
+          ],
+          "targetPath": "source/renderer/app/components/voting/voting-governance/VotingPowerDelegation.tsx",
+          "acceptanceCriteria": [
+            "CurrentVoteSummary always renders above the form, including noDelegation warning + nudge state.",
+            "Layout matches design (verified via Storybook in Phase 5)."
+          ]
+        },
+        {
+          "id": "task-043",
+          "title": "Disable submit on identical-to-current delegation",
+          "description": "Compute isSameAsCurrent after canonical normalization (via task-006 normalizer). Add it to submitButtonDisabled. Show inline hint copy grounded in the current on-chain delegation, for example 'This wallet already votes for this DRep'.",
+          "status": "pending",
+          "priority": "high",
+          "estimatedHours": 4,
+          "dependencies": [
+            "task-041",
+            "task-036"
+          ],
+          "targetPath": "source/renderer/app/components/voting/voting-governance/VotingPowerDelegation.tsx",
+          "acceptanceCriteria": [
+            "Submit is disabled when the selected vote equals currentVote after normalization.",
+            "Disabled state shows the appropriate tooltip hint.",
+            "Existing same_vote server error remains reachable as a safety net."
+          ]
+        },
+        {
+          "id": "task-044",
+          "title": "Keep confirmation dialog current-target only",
+          "description": "Confirm VotingGovernancePage does not pass historical vote-target props to VotingPowerDelegationConfirmationDialog in v1.",
+          "status": "pending",
+          "priority": "high",
+          "estimatedHours": 2,
+          "dependencies": [
+            "task-043"
+          ],
+          "targetPath": "source/renderer/app/containers/voting/VotingGovernancePage.tsx",
+          "acceptanceCriteria": [
+            "No historical vote-target prop is required for the v1 confirmation dialog.",
+            "Backward-compatible: dialogs behave as today when only the selected current target is provided."
+          ]
+        },
+        {
+          "id": "task-045",
+          "title": "Verify confirmation dialog remains unchanged for current-vote display",
+          "description": "Verify source/renderer/app/components/voting/voting-governance/VotingPowerDelegationConfirmationDialog.tsx keeps the existing fee + passphrase / HW status sections unchanged while current-vote display remains above the form.",
+          "status": "pending",
+          "priority": "high",
+          "estimatedHours": 3,
+          "dependencies": [
+            "task-044"
+          ],
+          "targetPath": "source/renderer/app/components/voting/voting-governance/VotingPowerDelegationConfirmationDialog.tsx",
+          "acceptanceCriteria": [
+            "Dialog renders the selected target with today's layout.",
+            "No historical comparison rows are introduced in v1.",
+            "HW status section (lines ~L118-L127) is untouched."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sprint-9",
+      "name": "Sprint 9 — Storybook stories and fixtures",
+      "description": "Add the currentVote knob across every governance story (production + v1 + v2 + v3) with a pure factory and key-based remount of VotingPowerDelegation.",
+      "riskLevel": "low",
+      "tasks": [
+        {
+          "id": "task-046",
+          "title": "Add currentVoteOptions and pure wallet factory in _utils/fixtures",
+          "description": "Add currentVoteOptions with option ids noDelegation | drepVerified | drepUnverified | abstain | noConfidence and useCurrentVoteKnob() helper to storybook/stories/governance/_utils/fixtures.ts. Export makeGovernanceWallets(option) — a pure factory that returns a fresh wallets array each call. Forbid any mutation of a module-level GOVERNANCE_WALLETS.",
+          "status": "pending",
+          "priority": "medium",
+          "estimatedHours": 4,
+          "dependencies": [
+            "task-038"
+          ],
+          "targetPath": "storybook/stories/governance/_utils/fixtures.ts",
+          "acceptanceCriteria": [
+            "makeGovernanceWallets always returns a freshly-constructed array.",
+            "No knob handler mutates a pre-existing Wallet instance.",
+            "currentVoteOptions enumerates exactly five values: noDelegation | drepVerified | drepUnverified | abstain | noConfidence.",
+            "Anchor fixtures use CIP-119 test vectors: SIPO mainnet, Cardano Academy preprod, canonical CIP-119 example with verified hash."
+          ]
+        },
+        {
+          "id": "task-047",
+          "title": "Add key-based remount in GovernanceWrapper",
+          "description": "Extend storybook/stories/governance/_utils/GovernanceWrapper.tsx to derive a React key from the selected current-vote option id (noDelegation | drepVerified | drepUnverified | abstain | noConfidence) and pass it down so VotingPowerDelegation remounts (clearing its local form state) on every knob change.",
+          "status": "pending",
+          "priority": "medium",
+          "estimatedHours": 3,
+          "dependencies": [
+            "task-046"
+          ],
+          "targetPath": "storybook/stories/governance/_utils/GovernanceWrapper.tsx",
+          "acceptanceCriteria": [
+            "Wrapper exposes a key derived from the selected current-vote option id: noDelegation | drepVerified | drepUnverified | abstain | noConfidence.",
+            "Children consume the key so VotingPowerDelegation remounts on knob change."
+          ]
+        },
+        {
+          "id": "task-048",
+          "title": "Add currentVote knob to all four governance stories",
+          "description": "Add the Current vote knob and integration to storybook/stories/voting/Governance.stories.tsx, storybook/stories/governance/V1DedicatedSection.stories.tsx, storybook/stories/governance/V2EmbeddedSelector.stories.tsx, storybook/stories/governance/V3SplitPane.stories.tsx using option ids noDelegation | drepVerified | drepUnverified | abstain | noConfidence, makeGovernanceWallets(option), and key={option} remount. Both `storybook/stories/voting/Governance.stories.tsx` (module-level GOVERNANCE_WALLETS at L57-83 + reuse at L228 / L427-458) AND `storybook/stories/governance/V2EmbeddedSelector.stories.tsx` (module-level GOVERNANCE_WALLETS at L82-106) must be migrated to per-render `makeGovernanceWallets(option)` calls. Grep confirms no other importers.",
+          "status": "pending",
+          "priority": "medium",
+          "estimatedHours": 6,
+          "dependencies": [
+            "task-047"
+          ],
+          "targetPath": "storybook/stories/governance/",
+          "acceptanceCriteria": [
+            "All four stories expose the five-value Current vote knob with option ids noDelegation | drepVerified | drepUnverified | abstain | noConfidence.",
+            "No story mutates a module-level GOVERNANCE_WALLETS.",
+            "Every knob value renders without console errors or layout overflow in both en-US and ja-JP."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sprint-10",
+      "name": "Sprint 10 — i18n",
+      "description": "Polished en-US and ja-JP copy for new keys, split across CurrentVoteSummary and confirmation-dialog namespaces.",
+      "riskLevel": "low",
+      "tasks": [
+        {
+          "id": "task-049",
+          "title": "Add i18n keys for CurrentVoteSummary and confirmation dialog",
+          "description": "Create CurrentVoteSummary.messages.ts with namespace voting.governance.currentVote.* (headerCurrent, statusDelegatedToDRep, statusAbstain, statusNoConfidence, noDelegation title/warning/subline/cta, DRep link labels, abstain/noConfidence captions, sameVoteHint). In VotingPowerDelegationConfirmationDialog.messages.ts confirm existing target copy remains valid. Run yarn i18n:manage to populate en-US.json and ja-JP.json, then write final ja-JP copy.",
+          "status": "pending",
+          "priority": "medium",
+          "estimatedHours": 4,
+          "dependencies": [
+            "task-039",
+            "task-045"
+          ],
+          "targetPath": "source/renderer/app/i18n/locales/",
+          "acceptanceCriteria": [
+            "CurrentVoteSummary keys present in en-US.json and ja-JP.json: headerCurrent, statusDelegatedToDRep, statusAbstain, statusNoConfidence, noDelegation title/warning/subline/cta, DRep link labels, abstain/noConfidence captions, sameVoteHint.",
+            "Confirmation dialog copy remains compatible with the selected current target.",
+            "ja-JP copy reviewed for length / layout overflow.",
+            "yarn i18n:manage runs clean."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sprint-11",
+      "name": "Sprint 11 — Tests",
+      "description": "Unit, component, e2e, and sanitization regression coverage.",
+      "riskLevel": "medium",
+      "tasks": [
+        {
+          "id": "task-050",
+          "title": "Unit tests: mapper, Wallet computeds, and CurrentVoteSummary",
+          "description": "Jest unit test for _createWalletFromServerData mapping (drep / abstain / no_confidence / delegating_and_voting / pending / voting-only => delegatedStakePoolId === null). Jest unit test for Wallet.currentVote, Wallet.pendingVote, isVoting computeds. Component test for CurrentVoteSummary snapshots per current-vote option.",
+          "status": "pending",
+          "priority": "high",
+          "estimatedHours": 5,
+          "dependencies": [
+            "task-037",
+            "task-038"
+          ],
+          "targetPath": "tests/jest/api/",
+          "acceptanceCriteria": [
+            "All five mapping cases pass.",
+            "voting-only fixture asserts delegatedStakePoolId === null.",
+            "Wallet computeds covered for every WalletVotingTarget kind plus null.",
+            "CurrentVoteSummary component snapshots cover each current-vote option."
+          ]
+        },
+        {
+          "id": "task-051",
+          "title": "Cucumber @e2e governance current-vote scenario + HW path",
+          "description": "Given mocked wallet with current DRep X, when user opens Governance and selects the wallet, then CurrentVoteSummary shows the correct current/noDelegation state, the unchanged-submit is disabled, changing to a different vote reaches the confirmation dialog, and no DRep id / abstain / no_confidence / CIP-129/CIP-105 string appears in logger.* or analytics spy call args throughout the flow. HW path: HW wallet renders CurrentVoteSummary without device connection; same-vote submit is blocked before tx initialization; changing the vote opens the existing HW confirmation flow with disconnected / locked / app-not-open status.",
+          "status": "pending",
+          "priority": "high",
+          "estimatedHours": 8,
+          "dependencies": [
+            "task-043",
+            "task-045",
+            "task-048",
+            "task-049"
+          ],
+          "targetPath": "tests/voting/features/",
+          "acceptanceCriteria": [
+            "Scenario green in @e2e suite.",
+            "HW path green for at least disconnected / locked / app-not-open.",
+            "Logger and analytics spies confirm no leaked vote target."
+          ]
+        },
+        {
+          "id": "task-052",
+          "title": "Sanitization regression test",
+          "description": "Jest test using spies over logger and the injected AnalyticsTracker.sendEvent (and optionally MatomoClient.sendEvent for integration-level coverage) asserting that during a full delegation flow no DRep id, no 'abstain' / 'no_confidence' literal, and no CIP-129/CIP-105 string appears in any logger.* payload or analytics call args. Also confirms VotingStore.expectedInitializeVPDelegationTxErrors.same_vote path is still reachable.",
+          "status": "pending",
+          "priority": "high",
+          "estimatedHours": 4,
+          "dependencies": [
+            "task-031",
+            "task-032",
+            "task-043"
+          ],
+          "targetPath": "tests/jest/security/",
+          "acceptanceCriteria": [
+            "Spies confirm zero leaks for DRep id, abstain, no_confidence, drep1/drep_vkh1/drep_script1 prefixes.",
+            "Regression case for same_vote server error path remains green.",
+            "Spy is on the injected `AnalyticsTracker.sendEvent` (or equivalent renderer-facing tracker) — NOT on a non-existent `analytics.track` symbol."
+          ]
         }
       ]
     }
   ],
   "summary": {
-    "totalPhases": 4,
-    "totalTasks": 23,
+    "totalPhases": 11,
+    "totalTasks": 52,
     "criticalPath": [
       "task-001",
       "task-002",
@@ -432,7 +998,8 @@
       "task-020",
       "task-021",
       "task-022",
-      "task-023"
+      "task-023",
+      "task-029"
     ]
   }
 }

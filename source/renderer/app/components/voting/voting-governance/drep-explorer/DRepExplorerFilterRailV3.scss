@@ -1,0 +1,58 @@
+// NOTE: Stub demo colors. Production must use Daedalus theme tokens from source/renderer/app/themes/. WCAG AA verification deferred to production-component pass.
+
+.component {
+  background: var(--theme-bordered-box-background-color);
+  border-right: 1px solid rgba(61, 78, 117, 0.16);
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  min-width: 240px;
+  padding: 18px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.section h3 {
+  color: #344054;
+  font-size: 13px;
+  margin: 0;
+}
+
+.checkboxLabel {
+  align-items: center;
+  color: #475467;
+  display: flex;
+  font-size: 13px;
+  gap: 8px;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.actions button {
+  background: var(--theme-bordered-box-background-color);
+  border: 1px solid rgba(61, 78, 117, 0.22);
+  border-radius: 4px;
+  color: #3154a3;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px 12px;
+}
+
+.liveRegion {
+  height: 1px;
+  left: -10000px;
+  overflow: hidden;
+  position: absolute;
+  top: auto;
+  width: 1px;
+}

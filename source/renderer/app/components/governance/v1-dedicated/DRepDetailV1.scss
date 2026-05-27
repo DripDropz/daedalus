@@ -1,0 +1,85 @@
+// NOTE: Stub demo colors. Production must use Daedalus theme tokens from source/renderer/app/themes/. WCAG AA verification deferred to production-component pass.
+
+.component {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+
+.backButton,
+.favoriteButton {
+  background: transparent;
+  border: 1px solid rgba(61, 78, 117, 0.22);
+  border-radius: 4px;
+  color: #3154a3;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px 12px;
+}
+
+.backButton {
+  align-self: flex-start;
+}
+
+.identityBlock {
+  align-items: flex-start;
+  background: var(--theme-bordered-box-background-color);
+  border: 1px solid rgba(61, 78, 117, 0.16);
+  border-radius: 6px;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  padding: 18px;
+}
+
+.avatar {
+  align-items: center;
+  background: #3154a3;
+  border-radius: 6px;
+  color: #ffffff;
+  display: flex;
+  font-weight: 800;
+  height: 48px;
+  justify-content: center;
+  width: 48px;
+}
+
+.identityCopy {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.identityCopy h2 {
+  font-size: 22px;
+  margin: 0;
+}
+
+.detailGrid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.selectButton {
+  align-self: flex-start;
+  background: #3154a3;
+  border: 1px solid #3154a3;
+  border-radius: 4px;
+  color: #ffffff;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 10px 14px;
+}
+
+@media (max-width: 1120px) {
+  .identityBlock,
+  .detailGrid {
+    grid-template-columns: 1fr;
+  }
+}

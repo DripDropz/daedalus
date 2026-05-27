@@ -50,6 +50,11 @@ import type {
   InitializeVPDelegationTxError,
 } from '../../../source/renderer/app/stores/VotingStore';
 import { generateWallet } from '../_support/utils';
+import {
+  CurrentVoteSummaryMock,
+  currentVoteKnob,
+  resolveCurrentVoteKnob,
+} from '../governance/_utils/CurrentVoteMock';
 
 const VALID_DREP_ID =
   'drep1ygqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq7vlc9n';
@@ -96,13 +101,15 @@ const voteOptions = {
   'No confidence': 'no_confidence',
 };
 
-const initializeTxErrorOptions: Record<string, InitializeVPDelegationTxError> =
-  {
-    Generic: 'generic',
-    'Same vote': 'same_vote',
-    'No UTxOs available': 'no_utxos_available',
-    'Not enough money': 'not_enough_money',
-  };
+const initializeTxErrorOptions: Record<
+  string,
+  InitializeVPDelegationTxError
+> = {
+  Generic: 'generic',
+  'Same vote': 'same_vote',
+  'No UTxOs available': 'no_utxos_available',
+  'Not enough money': 'not_enough_money',
+};
 
 const delegateVotesErrorOptions: Record<string, DelegateVotesError> = {
   Generic: 'generic',
@@ -116,7 +123,7 @@ const hwDeviceStatusOptions = {
   Failed: HwDeviceStatuses.VERIFYING_TRANSACTION_FAILED,
 };
 
-const STAKE_POOLS_LIST = STAKE_POOLS as unknown as Array<StakePool>;
+const STAKE_POOLS_LIST = (STAKE_POOLS as unknown) as Array<StakePool>;
 
 const mockFundInfo: CatalystFund = {
   current: {
@@ -196,6 +203,9 @@ const governanceStoryDecorator = (story: () => React.ReactNode) => (
 );
 
 const renderGovernancePanel = () => {
+  const voteState = resolveCurrentVoteKnob(
+    currentVoteKnob('Current vote (mock)')
+  );
   const transactionFee = new BigNumber(
     number('Initialized transaction fee', 0.174257, {
       min: 0,
@@ -205,26 +215,29 @@ const renderGovernancePanel = () => {
   text('Valid DRep ID fixture', VALID_DREP_ID);
 
   return (
-    <VotingPowerDelegation
-      getStakePoolById={getStakePoolById}
-      initiateTransaction={async (params) => {
-        action('initiateTransaction')(params);
-        return boolean('Initialization succeeds', true)
-          ? { success: true, fees: transactionFee }
-          : {
-              success: false,
-              errorCode: select(
-                'Initialization error',
-                initializeTxErrorOptions,
-                'same_vote'
-              ),
-            };
-      }}
-      onExternalLinkClick={action('onExternalLinkClick')}
-      renderConfirmationDialog={renderGovernanceConfirmationDialog}
-      stakePools={STAKE_POOLS_LIST}
-      wallets={GOVERNANCE_WALLETS}
-    />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <CurrentVoteSummaryMock state={voteState} />
+      <VotingPowerDelegation
+        getStakePoolById={getStakePoolById}
+        initiateTransaction={async (params) => {
+          action('initiateTransaction')(params);
+          return boolean('Initialization succeeds', true)
+            ? { success: true, fees: transactionFee }
+            : {
+                success: false,
+                errorCode: select(
+                  'Initialization error',
+                  initializeTxErrorOptions,
+                  'same_vote'
+                ),
+              };
+        }}
+        onExternalLinkClick={action('onExternalLinkClick')}
+        renderConfirmationDialog={renderGovernanceConfirmationDialog}
+        stakePools={STAKE_POOLS_LIST}
+        wallets={GOVERNANCE_WALLETS}
+      />
+    </div>
   );
 };
 

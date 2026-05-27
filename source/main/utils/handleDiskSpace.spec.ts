@@ -148,8 +148,8 @@ describe('handleDiskSpace', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
-    global.setInterval = jest.fn(() => 1) as unknown as typeof setInterval;
-    global.clearInterval = jest.fn() as unknown as typeof clearInterval;
+    global.setInterval = (jest.fn(() => 1) as unknown) as typeof setInterval;
+    global.clearInterval = (jest.fn() as unknown) as typeof clearInterval;
     mithrilBootstrapStatus = {
       status: 'idle',
       snapshot: null,
@@ -186,8 +186,9 @@ describe('handleDiskSpace', () => {
   });
 
   it('starts cardano-node after recovery when the default managed chain already has data', async () => {
-    const { handleDiskSpace } =
-      require('./handleDiskSpace') as typeof import('./handleDiskSpace');
+    const {
+      handleDiskSpace,
+    } = require('./handleDiskSpace') as typeof import('./handleDiskSpace');
     const cardanoNode = createCardanoNode();
 
     chainStorageCoordinatorMock.ensureManagedChainLayout.mockResolvedValue({
@@ -218,8 +219,9 @@ describe('handleDiskSpace', () => {
   });
 
   it('continues into the existing Mithril decision flow after recovery when the default chain is empty', async () => {
-    const { handleDiskSpace } =
-      require('./handleDiskSpace') as typeof import('./handleDiskSpace');
+    const {
+      handleDiskSpace,
+    } = require('./handleDiskSpace') as typeof import('./handleDiskSpace');
     const cardanoNode = createCardanoNode();
 
     chainStorageCoordinatorMock.ensureManagedChainLayout.mockResolvedValue({
@@ -243,8 +245,9 @@ describe('handleDiskSpace', () => {
   });
 
   it('still propagates unrecoverable startup gate errors to direct callers', async () => {
-    const { handleDiskSpace } =
-      require('./handleDiskSpace') as typeof import('./handleDiskSpace');
+    const {
+      handleDiskSpace,
+    } = require('./handleDiskSpace') as typeof import('./handleDiskSpace');
     const cardanoNode = createCardanoNode();
     const layoutError = new Error('permission denied');
 
@@ -270,8 +273,9 @@ describe('handleDiskSpace', () => {
   });
 
   it('starts cardano-node immediately after a directory change when the new managed chain already has data', async () => {
-    const { handleDiskSpace } =
-      require('./handleDiskSpace') as typeof import('./handleDiskSpace');
+    const {
+      handleDiskSpace,
+    } = require('./handleDiskSpace') as typeof import('./handleDiskSpace');
     const cardanoNode = createCardanoNode();
 
     handleDiskSpace({ webContents: {} } as never, cardanoNode as never);
@@ -297,8 +301,9 @@ describe('handleDiskSpace', () => {
   });
 
   it('continues into the Mithril decision flow immediately after a directory change when the new managed chain is empty', async () => {
-    const { handleDiskSpace } =
-      require('./handleDiskSpace') as typeof import('./handleDiskSpace');
+    const {
+      handleDiskSpace,
+    } = require('./handleDiskSpace') as typeof import('./handleDiskSpace');
     const cardanoNode = createCardanoNode();
 
     chainStorageCoordinatorMock.isManagedChainEmpty.mockResolvedValue(true);
@@ -321,8 +326,9 @@ describe('handleDiskSpace', () => {
   });
 
   it('abandons a stale in-flight check after a directory change during the startup gate', async () => {
-    const { handleDiskSpace } =
-      require('./handleDiskSpace') as typeof import('./handleDiskSpace');
+    const {
+      handleDiskSpace,
+    } = require('./handleDiskSpace') as typeof import('./handleDiskSpace');
     const initialLayout = createDeferred<{
       managedChainPath: string;
       isRecoveryFallback: boolean;
@@ -364,8 +370,9 @@ describe('handleDiskSpace', () => {
   });
 
   it('re-evaluates immediately when resetToDefault emits the same directory-change callback', async () => {
-    const { handleDiskSpace } =
-      require('./handleDiskSpace') as typeof import('./handleDiskSpace');
+    const {
+      handleDiskSpace,
+    } = require('./handleDiskSpace') as typeof import('./handleDiskSpace');
     const cardanoNode = createCardanoNode();
 
     chainStorageCoordinatorMock.ensureManagedChainLayout
@@ -402,8 +409,9 @@ describe('handleDiskSpace', () => {
   });
 
   it('coalesces overlapping triggers into one trailing rerun without double-starting the node', async () => {
-    const { handleDiskSpace } =
-      require('./handleDiskSpace') as typeof import('./handleDiskSpace');
+    const {
+      handleDiskSpace,
+    } = require('./handleDiskSpace') as typeof import('./handleDiskSpace');
     const initialLayout = createDeferred<{
       managedChainPath: string;
       isRecoveryFallback: boolean;
@@ -444,8 +452,9 @@ describe('handleDiskSpace', () => {
   });
 
   it('preserves fresh-directory semantics when a later poll trigger overlaps a queued rerun', async () => {
-    const { handleDiskSpace } =
-      require('./handleDiskSpace') as typeof import('./handleDiskSpace');
+    const {
+      handleDiskSpace,
+    } = require('./handleDiskSpace') as typeof import('./handleDiskSpace');
     const initialLayout = createDeferred<{
       managedChainPath: string;
       isRecoveryFallback: boolean;
@@ -490,8 +499,9 @@ describe('handleDiskSpace', () => {
   });
 
   it('logs fire-and-forget directory-change recheck failures instead of leaving rejections unhandled', async () => {
-    const { handleDiskSpace } =
-      require('./handleDiskSpace') as typeof import('./handleDiskSpace');
+    const {
+      handleDiskSpace,
+    } = require('./handleDiskSpace') as typeof import('./handleDiskSpace');
     const cardanoNode = createCardanoNode();
     const layoutError = new Error('permission denied');
 
@@ -517,8 +527,9 @@ describe('handleDiskSpace', () => {
   });
 
   it('logs and contains managed-layout failures from the background polling interval', async () => {
-    const { handleDiskSpace } =
-      require('./handleDiskSpace') as typeof import('./handleDiskSpace');
+    const {
+      handleDiskSpace,
+    } = require('./handleDiskSpace') as typeof import('./handleDiskSpace');
     const cardanoNode = createCardanoNode();
     const layoutError = new Error('permission denied');
 
@@ -545,8 +556,9 @@ describe('handleDiskSpace', () => {
   });
 
   it('clears Mithril decision state and emits idle before starting on a non-empty managed chain', async () => {
-    const { handleDiskSpace } =
-      require('./handleDiskSpace') as typeof import('./handleDiskSpace');
+    const {
+      handleDiskSpace,
+    } = require('./handleDiskSpace') as typeof import('./handleDiskSpace');
     const cardanoNode = createCardanoNode();
 
     chainStorageCoordinatorMock.isManagedChainEmpty.mockResolvedValue(false);
@@ -569,8 +581,9 @@ describe('handleDiskSpace', () => {
   });
 
   it('still starts cardano-node when emitting idle status fails on a non-empty managed chain', async () => {
-    const { handleDiskSpace } =
-      require('./handleDiskSpace') as typeof import('./handleDiskSpace');
+    const {
+      handleDiskSpace,
+    } = require('./handleDiskSpace') as typeof import('./handleDiskSpace');
     const cardanoNode = createCardanoNode();
 
     chainStorageCoordinatorMock.isManagedChainEmpty.mockResolvedValue(false);
@@ -599,8 +612,9 @@ describe('handleDiskSpace', () => {
   });
 
   it('still starts cardano-node when emitting idle status never resolves on a non-empty managed chain', async () => {
-    const { handleDiskSpace } =
-      require('./handleDiskSpace') as typeof import('./handleDiskSpace');
+    const {
+      handleDiskSpace,
+    } = require('./handleDiskSpace') as typeof import('./handleDiskSpace');
     const cardanoNode = createCardanoNode();
 
     chainStorageCoordinatorMock.isManagedChainEmpty.mockResolvedValue(false);
@@ -619,8 +633,9 @@ describe('handleDiskSpace', () => {
   });
 
   it('falls back to starting cardano-node when the non-empty chain check throws', async () => {
-    const { handleDiskSpace } =
-      require('./handleDiskSpace') as typeof import('./handleDiskSpace');
+    const {
+      handleDiskSpace,
+    } = require('./handleDiskSpace') as typeof import('./handleDiskSpace');
     const cardanoNode = createCardanoNode();
 
     chainStorageCoordinatorMock.isManagedChainEmpty.mockRejectedValueOnce(
@@ -646,8 +661,9 @@ describe('handleDiskSpace', () => {
   });
 
   it('does not start cardano-node when the periodic disk check fires during an active mithril download', async () => {
-    const { handleDiskSpace } =
-      require('./handleDiskSpace') as typeof import('./handleDiskSpace');
+    const {
+      handleDiskSpace,
+    } = require('./handleDiskSpace') as typeof import('./handleDiskSpace');
     const {
       getMithrilBootstrapStatus,
     } = require('../ipc/mithrilBootstrapChannel');
@@ -677,8 +693,9 @@ describe('handleDiskSpace', () => {
   });
 
   it('does not start cardano-node when the periodic disk check fires while mithril is finalizing', async () => {
-    const { handleDiskSpace } =
-      require('./handleDiskSpace') as typeof import('./handleDiskSpace');
+    const {
+      handleDiskSpace,
+    } = require('./handleDiskSpace') as typeof import('./handleDiskSpace');
     const {
       getMithrilBootstrapStatus,
     } = require('../ipc/mithrilBootstrapChannel');
@@ -702,8 +719,9 @@ describe('handleDiskSpace', () => {
   });
 
   it('handles cancelled Mithril bootstrap by declining and starting cardano-node when chain is empty', async () => {
-    const { handleDiskSpace } =
-      require('./handleDiskSpace') as typeof import('./handleDiskSpace');
+    const {
+      handleDiskSpace,
+    } = require('./handleDiskSpace') as typeof import('./handleDiskSpace');
     const {
       getPendingMithrilBootstrapDecision,
       getMithrilBootstrapStatus,
@@ -732,8 +750,9 @@ describe('handleDiskSpace', () => {
   });
 
   it('handles cancelled Mithril bootstrap by declining and starting cardano-node when chain has data', async () => {
-    const { handleDiskSpace } =
-      require('./handleDiskSpace') as typeof import('./handleDiskSpace');
+    const {
+      handleDiskSpace,
+    } = require('./handleDiskSpace') as typeof import('./handleDiskSpace');
     const {
       getPendingMithrilBootstrapDecision,
       getMithrilBootstrapStatus,

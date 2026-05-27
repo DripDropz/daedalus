@@ -12,6 +12,10 @@ import './dapps/TransactionRequest.stories';
 // Voting
 import './voting/Voting.stories';
 import './voting/Governance.stories';
+// DRep Discovery (UX preview)
+import './governance/V1DedicatedSection.stories';
+import './governance/V2EmbeddedSelector.stories';
+import './governance/V3SplitPane.stories';
 // Settings
 import './settings';
 // Assets

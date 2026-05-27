@@ -1,5 +1,5 @@
-import { Device as TrezorDevice } from '@trezor/connect';
-import {
+import type { Device as TrezorDevice } from '@trezor/connect';
+import type {
   TxOutputDestinationType,
   AddressType,
   CIP36VoteRegistrationFormat,
@@ -151,8 +151,9 @@ export type StakingBlockchainPointer = {
   txIndex: number;
   certificateIndex: number;
 };
-export type LedgerSignTransactionInputsType =
-  Array<LedgerSignTransactionInputType>;
+export type LedgerSignTransactionInputsType = Array<
+  LedgerSignTransactionInputType
+>;
 export type LedgerSignTransactionOutputsType =
   | []
   | Array<LedgerOutputTypeAddress | LedgerOutputTypeChange>;

@@ -35,6 +35,10 @@ Artifact placement decision: this plan and its task tracker are canonical under 
 - Let users select a DRep from the discovery surface and delegate through the existing software-wallet and hardware-wallet flows.
 - Render verified DRep anchor metadata only after hardened fetch, hash verification, immutable hash-keyed caching, parsing, and source labeling are complete.
 - Preserve current-state-only behavior until a separate local-history initiative is approved.
+- Tell users the current governance vote (DRep / Abstain / No Confidence) held by the selected wallet and pre-fill the existing `VotingPowerDelegation` flow from that state.
+- Sanitize DRep ids and `abstain` / `no_confidence` literals out of logs and analytics before plumbing the current-vote state into the renderer.
+- When a wallet has not delegated, surface the CIP-1694 reward-withdrawal restriction and nudge the user to choose a DRep, Abstain, or No Confidence — Daedalus never picks a delegation automatically.
+- Display the DRep's `body.givenName` (CIP-119) inline alongside the DRep id and offer two links: the in-app DRep detail view and the raw anchor URL.
 
 ## Non-Goals
 
@@ -66,6 +70,14 @@ Artifact placement decision: this plan and its task tracker are canonical under 
 - [ ] Delegation submission continues through the existing software-wallet `delegateVotes` request and existing hardware-wallet signing path in `VotingStore`.
 - [ ] Sprint 2 confirmation shows the DRep ID only; verified display names are added only after the verified anchor pipeline is active.
 - [ ] All user-visible DRep Discovery text ships with polished en-US and ja-JP copy.
+- [ ] Widen `WalletDelegation` / `WalletNextDelegation` with `voting?: WalletVotingTarget` (discriminated by `kind`) carrying a canonical `DRepIdentity` (`raw`, `cip129?`, `cip105?`, `credentialHex?`, `credentialType: 'key' | 'script'`).
+- [ ] Fix the latent literal mismatch where Daedalus writes `'voting_and_delegating'` but the cardano-wallet wire emits `'delegating_and_voting'`, preserving the public `WalletDelegationStatuses.VOTING_AND_DELEGATING` export name.
+- [ ] Sanitize `filterLogData` for `dRepId`, `vote`, `voting` keys and reduce the `Casted governance vote` analytics payload to `voteKind` only.
+- [ ] Render a `CurrentVoteSummary` panel above the `VotingPowerDelegation` form. The panel ALWAYS renders; states are: `noDelegation` (warning + nudge), `drep` (givenName + source label + id + two links: in-app view details, external anchor URL), `abstain`, and `no_confidence`. Pre-fill form state from the current on-chain delegation (or leave empty for `noDelegation`); disable submit when the form selection matches the current delegation after canonical normalization.
+- [ ] Add a five-value `currentVote` Storybook knob (`noDelegation | drepVerified | drepUnverified | abstain | noConfidence`) to every governance story (production + V1 + V2 + V3) via a pure wallet factory and `key`-based remount. Default value is `noDelegation` so the warning + nudge state is visible on first load.
+- [ ] Surface a reward-withdrawal warning in the `noDelegation` state using copy grounded in CIP-1694 (rewards blocked from withdrawal until the stake credential delegates to a DRep, Abstain, or No Confidence). Daedalus must not auto-select a delegation.
+- [ ] When the displayed delegation has an anchor, render the `body.givenName` field (CIP-119) and link both to (a) the in-app DRep detail route and (b) the raw anchor URL in a new browser context (`target="_blank" rel="noopener noreferrer"`).
+- [ ] Use the CIP-119 test vectors as fixture provenance in stories and tests: SIPO mainnet (`https://sipo.tokyo/drep/SIPO.jsonld`), Cardano Academy preprod (`https://raw.githubusercontent.com/cardano-foundation/cardano-academy/refs/heads/main/Cardano%20Academy.jsonld`), and the canonical CIP-119 example (`https://github.com/cardano-foundation/CIPs/blob/master/CIP-0119/examples/drep.jsonld`).
 
 ---
 
@@ -81,6 +93,11 @@ Artifact placement decision: this plan and its task tracker are canonical under 
 - Hardware-wallet users keep the existing signing path, including on-device confirmation and failure handling.
 - Query and parse failures surface as typed payloads rather than partial or misleading directory results.
 - Users can complete browse -> evaluate -> select -> delegate without external portals on a synced node.
+- Users see the current governance delegation (DRep id / Abstain / No Confidence) of the selected wallet without leaving the Governance page.
+- Users cannot submit a vote identical to the current on-chain delegation; the server-side `same_vote` error remains the safety net.
+- DRep ids, `abstain` / `no_confidence` literals, and CIP-129/CIP-105 strings appear in the renderer DOM only — never in logs, electron-store, or analytics — verified by automated spies.
+- Users whose wallet has no governance delegation see a warning that staking rewards cannot be withdrawn until they delegate, and a clear CTA to choose a delegation.
+- Users see the DRep's display name (CIP-119 `body.givenName`) and can open both the in-app DRep detail view and the raw anchor URL from the panel.
 
 ---
 
@@ -100,6 +117,14 @@ Artifact placement decision: this plan and its task tracker are canonical under 
 | Anchor content | Render only after hardened fetch, Blake2b-256 hash verification, immutable hash-keyed caching, parsing, and source labeling. |
 | Delegation boundary | No second delegation backend. Selection only supplies a DRep ID to existing software-wallet and hardware-wallet paths. |
 | Current-state boundary | No historical governance or stale anchor-content views in this release. |
+| Wire status literal | Wire value is `delegating_and_voting`; the Daedalus `'voting_and_delegating'` literal is a bug fixed in Sprint 5 (constant export name preserved). |
+| `ApiDRep` discrimination | Bech32 HRP of raw on-wire string: `"abstain"` / `"no_confidence"` sentinels; `drep1…` (CIP-129); `drep_vkh1…` / `drep_script1…` (CIP-105). |
+| Delegation effective semantics | Per CIP-1694, vote delegation has no per-action waiting period — the newest on-chain delegation IS the current delegation. The renderer uses `delegation.active.voting` as the authoritative current state. Historical vote-delegation browsing is out of scope for v1. |
+| Same-vote prevention | Client-side after canonical-form normalization; server `same_vote` error retained as authoritative safety net. |
+| Storybook isolation | Each `currentVote` knob change uses a pure wallet factory and force-remounts `VotingPowerDelegation` via a React `key`. No mutation of module-level `GOVERNANCE_WALLETS`. |
+| No auto-delegation | Daedalus never sets a default DRep. When a wallet has not delegated, the panel must show the CIP-1694 reward-withdrawal warning and a CTA to choose one. |
+| DRep name source | CIP-119 `body.givenName` only. If the anchor has not been verified, the name is hidden and only the DRep id is shown with an unverified source label. |
+| Anchor URL display | Show as an external link with `target="_blank" rel="noopener noreferrer"`. Never render the raw anchor JSON inline in the panel; the DRep detail view owns full anchor rendering. |
 
 ---
 
@@ -175,6 +200,8 @@ The initial query-path gate has been folded into this plan as research findings 
 - Integrate a Browse DReps affordance into [source/renderer/app/components/voting/voting-governance/VotingPowerDelegation.tsx](../../../source/renderer/app/components/voting/voting-governance/VotingPowerDelegation.tsx).
 - Retain direct DRep ID paste entry.
 
+Three information-architecture paradigms have been designed and prototyped: V1 dedicated Governance section, V2 embedded selector overlay launched from `VotingPowerDelegation`, and V3 split-pane explorer. The design folder's [README](../../designs/governance/drep-discovery/README.md) recommends V1 as the only variant that cleanly absorbs the future governance surfaces flagged in the Plan Boundary, with the largest Sprint 2 cost as the acknowledged trade-off. Final variant selection is pending stakeholder review; shared tokens, copy, and component contracts are variant-agnostic.
+
 ### Anchor Metadata Pipeline
 
 - Add a transport-agnostic main-process anchor fetch service with HTTP/HTTPS implemented and an IPFS slot reserved.
@@ -227,6 +254,18 @@ The initial query-path gate has been folded into this plan as research findings 
 5. Add Storybook, Jest, and Cucumber coverage.
 6. Complete release verification for browse -> evaluate -> select -> delegate without external portals.
 
+### Sprint 5: Wallet Current Vote Display
+
+This sprint extends the discovery work with an in-app current-vote panel on the existing `VotingPowerDelegation` page. It is renderer-only: no new IPC, no main-process change, no cardano-wallet pin change. It MUST land its sanitization gate before any UI surfaces the new state.
+
+1. **Sanitization gate (BLOCKER).** Redact `dRepId` / `vote` / `voting` from `filterLogData` and reduce the `Casted governance vote` analytics payload to a `voteKind` enum.
+2. **Data plumbing.** Commit `GET /v2/wallets/{id}` fixtures for `voting`, `delegating_and_voting`, abstain, and no_confidence. Fix the `'voting_and_delegating'` literal mismatch. Widen `WalletDelegation` with `voting?: WalletVotingTarget`. Add the `normalizeDRepIdentity` helper. Extract current delegation in `_createWalletFromServerData` with explicit collision rules between `delegatedStakePoolId` and `votingTarget`. Extend `Wallet` with `currentVote` / `isVoting` and add the new field to the `Wallet.update()` pick list.
+3. **`CurrentVoteSummary` component.** New presentational component reusing `DRepIdDisplay`, `DRepSourceLabel`, `DRepStatusBadge`. Renders four distinct states: `noDelegation` (reward-withdrawal warning + CTA to choose a delegation), `drep` (givenName + source label + id + in-app view-details link + external anchor URL link), `abstain`, and `no_confidence`. The component never auto-selects a delegation on the user's behalf.
+4. **Production flow integration.** Render `CurrentVoteSummary` above the form. Pre-fill `selectedVoteType` and `drepInputState.value` from the current on-chain delegation. Disable submit on identical-to-current after canonical normalization.
+5. **Storybook stories + fixtures.** Add the five-value `currentVote` knob (`noDelegation | drepVerified | drepUnverified | abstain | noConfidence`, default `noDelegation`) with a pure wallet factory and `key`-based remount across production + V1 + V2 + V3 stories. Anchor fixtures use the CIP-119 test vectors (SIPO mainnet, Cardano Academy preprod, canonical CIP-119 example). Migrate the module-level `GOVERNANCE_WALLETS` constants in production and V2 stories to per-render `makeGovernanceWallets(option)` calls.
+6. **i18n.** Add `voting.governance.currentVote.*` namespace keys in a new `CurrentVoteSummary.messages.ts` plus `voting.governance.confirmationDialog.previousVote` / `.newVote`. Run `yarn i18n:manage` and write final ja-JP copy.
+7. **Tests.** Jest unit tests for mapper, `Wallet` computeds, and `CurrentVoteSummary`; Cucumber `@e2e` scenario including the HW-wallet path; sanitization regression test spying over `logger.*` and `AnalyticsTracker.sendEvent`.
+
 ---
 
 ## Testing Strategy
@@ -236,6 +275,7 @@ The initial query-path gate has been folded into this plan as research findings 
 - Add Cucumber coverage for DRep directory browsing, refresh, search/show-all, DRep detail, verified anchor profile display, favorite persistence, selector handoff, software-wallet delegation, and mocked Ledger/Trezor delegation paths.
 - Add Storybook stories for directory, detail, selector, favorite toggle, source labels, confirmation dialog states, and loading/error/empty states.
 - Perform manual release validation on a synced node for the complete browse -> evaluate -> select -> delegate flow.
+- For Sprint 5: cover `_createWalletFromServerData` voting mapping, `Wallet.currentVote` / `isVoting` computeds, `CurrentVoteSummary` component snapshots per knob value, the Cucumber `@e2e` governance-current-vote feature, and the sanitization regression spying over `logger.*` and `AnalyticsTracker.sendEvent`.
 
 ---
 
@@ -245,6 +285,7 @@ The initial query-path gate has been folded into this plan as research findings 
 - Keep Sprint 2 local-on-chain only; do not render anchor-derived metadata before fetch, verification, cache, parse, and source-labeling hardening land.
 - Use the anchor-display feature flag for staged verification control, not as a permanent production off-switch.
 - Release DRep Discovery only when users can complete the full in-app discovery and delegation flow without external portals.
+- Treat the Sprint 5 sanitization gate (tasks task-031 + task-032 + task-052) as a hard prerequisite for any UI work that surfaces `delegation.active.voting`; no current-vote rendering ships until those land.
 
 ---
 
@@ -260,6 +301,12 @@ The initial query-path gate has been folded into this plan as research findings 
 | Unverified metadata misleads delegation | Render anchor-derived content only after hash verification and label it as verified off-chain content. |
 | Selector creates a competing delegation path | Keep selection as DRep ID handoff only; reuse existing `delegateVotes` and hardware-wallet signing paths. |
 | Wallet API surface changes invalidate query rationale | Keep the per-bump swagger-grep checklist and re-open the decision if wallet adds directory-wide DRep endpoints. |
+| Latent `voting_and_delegating` literal blocks all VOTING_AND_DELEGATING resolution | Sprint 5 fixes the underlying string while preserving the export name and adds a unit test asserting the constant equals the wire literal. |
+| Vote target leaks into logs or analytics | Sprint 5 sanitization gate widens `filterLogData` and reduces the `Casted governance vote` payload to vote-kind only, with a Jest spy regression test in task-052. |
+| Pre-fill from stale `Wallet` instance silently drops vote target after polling refresh | Sprint 5 adds `votingTarget` to the `Wallet.update()` pick list and derives the selected wallet from `selectedWalletId` against the latest snapshot. |
+| Misframing vote-delegation timing as stake-pool-delegation timing | The renderer uses CIP-1694 liquid-democracy framing: the newest on-chain vote delegation IS current. Historical vote-delegation browsing remains out of scope for v1. |
+| User assumes Daedalus auto-delegates | The `noDelegation` state explicitly states Daedalus will not pick a DRep and presents a CTA. Confirmed by code review: `delegateVotes` only fires from explicit form submission. |
+| Anchor URL leads to malicious content | Always open in a new tab with `rel="noopener noreferrer"`. Full anchor parsing/validation happens in the DRep detail flow (Sprint 4), never inline in the current-vote panel. |
 
 ---
 
@@ -268,6 +315,9 @@ The initial query-path gate has been folded into this plan as research findings 
 - What is the final product definition of completed DRep metadata beyond hash verification and CIP-119 parse success?
 - What exact local cache retention and pruning policy should be used for old verified DRep anchor content after it is no longer referenced by current on-chain state?
 - Should a future approved phase add IPFS transport support for DRep anchors, or keep HTTP/HTTPS as the only implemented transport?
+- Should DRep Discovery introduce a new top-level "Governance" nav item (V1 assumption) or rename the existing "Voting" item to "Governance" and nest current delegation under it? The latter yields cleaner long-term IA but disrupts muscle memory.
+- What is the lifetime of the randomization seed for the default cohort: reseed on every refresh, reseed per app session (current proposal), or user-toggleable? This drives the randomization indicator copy in [shared-design-tokens.md](../../designs/governance/drep-discovery/shared-design-tokens.md).
+- Confirm favorites remain per-device via Electron local store, accepting that wallet restore on a new machine will not carry favorites and the empty-state copy must own that expectation.
 
 ---
 
@@ -280,6 +330,32 @@ The initial query-path gate has been folded into this plan as research findings 
 - CIP-119: https://cips.cardano.org/cip/CIP-0119
 - CIP-1694: https://cips.cardano.org/cip/CIP-1694
 
+### UX Design Artifacts
+
+- Design folder overview, variant comparison, recommendation, and open questions: [.agent/designs/governance/drep-discovery/README.md](../../designs/governance/drep-discovery/README.md)
+- External research: [.agent/designs/governance/drep-discovery/external-research.md](../../designs/governance/drep-discovery/external-research.md)
+- Shared design tokens (status badges, source labels, formatting, refresh state, copy): [.agent/designs/governance/drep-discovery/shared-design-tokens.md](../../designs/governance/drep-discovery/shared-design-tokens.md)
+- Variant 1 — Dedicated Governance section: [.agent/designs/governance/drep-discovery/variant-1-dedicated-section.md](../../designs/governance/drep-discovery/variant-1-dedicated-section.md)
+- Variant 2 — Embedded selector overlay: [.agent/designs/governance/drep-discovery/variant-2-embedded-selector.md](../../designs/governance/drep-discovery/variant-2-embedded-selector.md)
+- Variant 3 — Split-pane explorer: [.agent/designs/governance/drep-discovery/variant-3-split-pane.md](../../designs/governance/drep-discovery/variant-3-split-pane.md)
+
+### Storybook Demos
+
+- Variant 1 dedicated section demo: [storybook/stories/governance/V1DedicatedSection.stories.tsx](../../../storybook/stories/governance/V1DedicatedSection.stories.tsx)
+- Variant 2 embedded selector demo: [storybook/stories/governance/V2EmbeddedSelector.stories.tsx](../../../storybook/stories/governance/V2EmbeddedSelector.stories.tsx)
+- Variant 3 split-pane demo: [storybook/stories/governance/V3SplitPane.stories.tsx](../../../storybook/stories/governance/V3SplitPane.stories.tsx)
+
+### Wallet Current Vote Display
+
+- Current Vote Display tech design: [../../designs/governance/drep-discovery/current-vote-display-design.md](../../designs/governance/drep-discovery/current-vote-display-design.md)
+- Current Vote Display UX spec: [../../designs/governance/drep-discovery/current-vote-display-ux.md](../../designs/governance/drep-discovery/current-vote-display-ux.md)
+- Storybook current-vote mock: [../../../storybook/stories/governance/_utils/CurrentVoteMock.tsx](../../../storybook/stories/governance/_utils/CurrentVoteMock.tsx)
+- CIP-1694 (liquid democracy, vote delegation semantics, reward-withdrawal gate): https://github.com/cardano-foundation/CIPs/blob/master/CIP-1694/README.md
+- CIP-119 test vector spec: https://github.com/cardano-foundation/CIPs/blob/master/CIP-0119/test-vector.md
+- CIP-119 canonical example (`drep.jsonld`, hash `a14a5ad4f36bddc00f92ddb39fd9ac633c0fd43f8bfa57758f9163d10ef916de`): https://github.com/cardano-foundation/CIPs/blob/master/CIP-0119/examples/drep.jsonld
+- Mainnet test vector — SIPO: https://sipo.tokyo/drep/SIPO.jsonld
+- Preprod test vector — Cardano Academy: https://raw.githubusercontent.com/cardano-foundation/cardano-academy/refs/heads/main/Cardano%20Academy.jsonld
+
 ---
 
 ## Changelog
@@ -287,6 +363,7 @@ The initial query-path gate has been folded into this plan as research findings 
 ### Added
 
 - Created standalone DRep Discovery plan covering the full browse, evaluate, select, and delegate flow.
+- Initial UX design package created with three flow variants (dedicated section, embedded selector, split-pane explorer), shared design tokens, external research, and Storybook stub demos.
 
 ### Changed
 
@@ -296,5 +373,5 @@ The initial query-path gate has been folded into this plan as research findings 
 ---
 
 **Status:** In Progress
-**Date:** 2026-05-21
+**Date:** 2026-05-22
 **Author:** david-profrontsolutions (ft. Github Copilot)

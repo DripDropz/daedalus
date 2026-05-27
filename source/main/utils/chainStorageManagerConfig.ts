@@ -15,8 +15,10 @@ import type {
 export async function getDefaultStorageConfig(
   ctx: ChainStorageManagerContext
 ): Promise<ChainStorageDefaults> {
-  const { exists: stateDirectoryExists, resolvedPath: resolvedStatePath } =
-    await ctx._resolveStateDirectoryPath();
+  const {
+    exists: stateDirectoryExists,
+    resolvedPath: resolvedStatePath,
+  } = await ctx._resolveStateDirectoryPath();
   const diskCheckPath = stateDirectoryExists
     ? resolvedStatePath
     : path.dirname(resolvedStatePath);
